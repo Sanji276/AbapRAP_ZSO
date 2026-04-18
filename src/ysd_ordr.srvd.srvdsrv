@@ -1,0 +1,5 @@
+@EndUserText.label: 'Service Definition for Order Header'
+define service YSD_ORDR {
+  expose YC_ORDR;
+  expose YC_RDR1;
+}

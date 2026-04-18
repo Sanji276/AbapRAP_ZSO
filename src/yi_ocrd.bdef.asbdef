@@ -1,0 +1,42 @@
+managed implementation in class zbp_i_ocrd unique;
+strict ( 2 );
+with draft;
+define behavior for YI_OCRD alias cardcode
+persistent table yocrd
+draft table ydrf_ocrd
+lock master total etag Lastchangedat
+authorization master ( instance )
+etag master Locallastchangedat
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly, numbering : managed ) Id;
+  field (readonly : update) Cardcode;
+
+  action (features: instance) setActive result [1] $self;
+
+  mapping for yocrd
+  {
+  Id = id;
+    Cardcode           = cardcode;
+    Cardname           = cardname;
+    Cardtype           = cardtype;
+    Billaddress        = billaddress;
+    Shipaddress        = shipaddress;
+    Pannum             = pannum;
+    Mobile             = mobile;
+    Isactive           = isactive;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    Lastchangedat      = lastchangedat;
+    Locallastchangedat = locallastchangedat;
+  }
+
+  //draft actions
+  draft action Activate optimized;
+  draft action Discard ;
+  draft action Edit ;
+  draft action Resume ;
+  draft determine action Prepare;
+}

@@ -1,0 +1,81 @@
+@Metadata.layer: #PARTNER
+
+@UI.headerInfo: {
+    typeName: 'Business Partner',
+    typeNamePlural: 'Business Partners',
+    title: {
+        type: #STANDARD,
+        value: 'Cardcode'
+    },
+    description: {
+        type: #STANDARD,
+        value: 'Cardname'
+    }
+}
+
+@Search.searchable: true
+
+annotate entity YC_OCRD
+with 
+{
+  @UI.facet: [{
+      id: 'BP',
+      purpose: #STANDARD,
+      position: 10,
+      importance: #HIGH,
+      label: 'Business Partners',
+      type: #IDENTIFICATION_REFERENCE
+  }]
+  
+  @UI: {
+    lineItem: [
+        { position: 10, label: 'BP Code' },                          
+        { type: #FOR_ACTION, position: 20, dataAction: 'setActive', label: 'Set Active' } 
+    ],
+    identification: [ { position: 10, label: 'BP Code' } ]
+  }
+  @Search.defaultSearchElement: true
+  Cardcode;
+
+  @UI: {
+    lineItem: [ { position: 20, label: 'BP Name' } ],
+    identification: [ { position: 20, label: 'BP Name' } ]
+  }
+  Cardname;
+
+  @UI: {
+    lineItem: [ { position: 30, label: 'BP Type' } ],
+    identification: [ { position: 30, label: 'BP Type' } ]
+  }
+  @Consumption.valueHelpDefinition: [{
+      entity: {
+          name: 'YI_CARDTYPE',
+          element: 'Value'
+      }
+  }]
+  Cardtype;
+
+  @UI.identification: [ { position: 40, label: 'Bill To Address' } ]
+  Billaddress;
+
+  @UI.identification: [ { position: 50, label: 'Ship To Address' } ]
+  Shipaddress;
+
+  @UI: {
+    lineItem: [ { position: 60, label: 'Pan Number' } ],
+    identification: [ { position: 60, label: 'Pan Number' } ]
+  }
+  Pannum;
+
+  @UI: {
+    lineItem: [ { position: 70, label: 'Mobile Number' } ],
+    identification: [ { position: 70, label: 'Mobile Number' } ]
+  }
+  Mobile;
+
+  @UI: {
+    lineItem: [ { position: 80, label: 'Is Active' } ],
+    identification: [ { position: 80, label: 'Is Active' } ]
+  }
+  Isactive;
+}

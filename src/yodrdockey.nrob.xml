@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_NROB" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <ATTRIBUTES>
+    <OBJECT>YODRDOCKEY</OBJECT>
+    <DOMLEN>ZDOCENTRY_NR</DOMLEN>
+    <PERCENTAGE>10.0</PERCENTAGE>
+    <BUFFER>X</BUFFER>
+    <NOIVBUFFER>00000001</NOIVBUFFER>
+    <NONRSWAP>X</NONRSWAP>
+   </ATTRIBUTES>
+   <TEXT>
+    <LANGU>E</LANGU>
+    <OBJECT>YODRDOCKEY</OBJECT>
+    <TXT>Number Range For Order Docentry</TXT>
+    <TXTSHORT>Number Range For...</TXTSHORT>
+   </TEXT>
+  </asx:values>
+ </asx:abap>
+</abapGit>

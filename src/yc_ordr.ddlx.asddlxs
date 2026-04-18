@@ -1,0 +1,138 @@
+@Metadata.layer: #PARTNER
+@UI.headerInfo: {
+    typeName: 'Sales Order',
+    typeNamePlural: 'Sales Orders',
+    title: {
+        type: #STANDARD,
+        value: 'DocNum'
+    },
+    description: {
+        type: #STANDARD,
+        value: 'CardName'
+    }
+}
+@Search.searchable: true
+annotate entity YC_ORDR with
+{
+  @UI.facet: [
+    {
+      id: 'HEADER',
+      purpose: #STANDARD,
+      position: 10,
+      label: 'Order Header Details',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'HEADER'
+    },
+    {
+      id: 'BODY',
+      purpose: #STANDARD,
+      position: 20,
+      label: 'Order Item Details',
+      type: #LINEITEM_REFERENCE,
+      targetElement: '_item'
+    },
+    {
+      id: 'FOOTER',
+      purpose: #STANDARD,
+      position: 30,
+      label: 'Remarks & Summary',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'FOOTER'
+    }
+  ]
+
+  // ── Cardcode
+  @UI.lineItem:   [{ position: 30, label: 'Card Code' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 10, label: 'Customer Code' }]
+  @Consumption.valueHelpDefinition: [{ entity.element: 'Cardcode', entity.name: 'YC_OCRD',
+    additionalBinding: [
+  { localElement: 'Cardname', element: 'Cardname' },
+  { localElement: 'Billtoaddress', element: 'Billaddress' },
+  { localElement: 'Shiptoaddress', element: 'Shipaddress' }
+  ]
+  }]
+  Cardcode;
+
+  // ── Cardname
+  @UI.lineItem:   [{ position: 40, label: 'Card Name' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 20, label: 'Customer Name' }]
+  Cardname;
+
+  // ── Numatcard
+  @UI.lineItem:   [{ position: 50, label: 'Ref No.' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 30, label: 'Cust. Ref. No.' }]
+  Numatcard;
+
+  // ── Doccur ──
+  @UI.lineItem:   [{ position: 60, label: 'Currency' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 40, label: 'Currency' }]
+  @Consumption.valueHelpDefinition: [{ entity.element: 'CurrCode', entity.name: 'YI_CURRENCY'
+  }]
+  Doccur;
+
+  // ── Series ──
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 50, label: 'Series' }]
+  Series;
+
+  // ── Docnum ──
+  @UI.lineItem:   [{ position: 10, label: 'Doc No.' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 60, label: 'Doc No.' }]
+  @Search.defaultSearchElement: true
+  Docnum;
+
+  // ── Docdate ─
+  @UI.lineItem:   [{ position: 20, label: 'Doc Date' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 70, label: 'Doc Date' }]
+  Docdate;
+
+  // ── Docduedate ──
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 80, label: 'Due Date' }]
+  Docduedate;
+
+  // ── Taxdate ─
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 90, label: 'Tax Date' }]
+  Taxdate;
+
+  // ── Docstatus
+  @UI.lineItem:   [{ position: 80, label: 'Status' }]
+  @UI.fieldGroup: [{ qualifier: 'HEADER', position: 100, label: 'Status' }]
+  Docstatus;
+
+  // ── Comments (Remarks)
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 10, label: 'Remarks' }]
+  Comments;
+
+  // ── Billtoaddress
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 20, label: 'Bill To Address' }]
+  Billtoaddress;
+
+  // ── Shiptoaddress
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 30, label: 'Ship To Address' }]
+  Shiptoaddress;
+
+  // ── Taxableamt
+  @UI.lineItem:   [{ position: 70, label: 'Taxable Amount' }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 40, label: 'Taxable Amount' }]
+  Taxableamt;
+
+  // ── Discount
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 50, label: 'Discount' }]
+  Discount;
+
+  // ── Taxamt ──
+  @UI.lineItem:   [{ position: 80, label: 'Tax Amount' }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 60, label: 'Tax Amount' }]
+  Taxamt;
+
+  // ── Doctotal
+  @UI.lineItem:   [{ hidden: true }]
+  @UI.fieldGroup: [{ qualifier: 'FOOTER', position: 70, label: 'Total Amount' }]
+  Doctotal;
+}

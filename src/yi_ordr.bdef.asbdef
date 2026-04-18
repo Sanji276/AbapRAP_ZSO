@@ -1,0 +1,110 @@
+unmanaged implementation in class zbp_i_ordr unique;
+strict ( 2 );
+with draft;
+define behavior for YI_ORDR alias ORDR
+
+draft table ydrf_ordr
+early numbering
+lock master total etag Lastchangedat
+authorization master ( instance )
+etag master Locallastchangedat
+{
+  create ( authorization : global );
+  update ( features : instance );
+  delete ( features : instance );
+  field ( readonly ) Docentry, DocNum, Docstatus, DocTotal, Taxableamt, Taxamt, Discount;
+  field ( readonly ) CardName;
+
+  //associations
+  association _item { create ( precheck ); with draft; }
+
+  //draft actions
+  draft action Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare;
+
+  //determination
+  determination set_docnum on modify { create; }
+  determination setCardname on modify { field Cardcode; }
+
+  mapping for yordr corresponding
+    {
+      Docentry           = docentry;
+      Series             = series;
+      Docnum             = docnum;
+      Docdate            = docdate;
+      Docduedate         = docduedate;
+      Taxdate            = taxdate;
+      Cardcode           = cardcode;
+      Cardname           = cardname;
+      Numatcard          = numatcard;
+      Billtoaddress      = billtoaddress;
+      Shiptoaddress      = shiptoaddress;
+      Comments           = comments;
+      Doccur             = doccur;
+      Taxableamt         = taxableamt;
+      Taxamt             = taxamt;
+      Discount           = discount;
+      Doctotal           = doctotal;
+      Docstatus          = docstatus;
+      CreatedBy          = created_by;
+      CreatedAt          = created_at;
+      Lastchangedat      = lastchangedat;
+      Locallastchangedat = locallastchangedat;
+    }
+}
+
+define behavior for YI_RDR1 alias RDR1
+//late numbering
+//early numbering
+draft table ydrf_rdr1
+lock dependent by _header
+authorization dependent by _header
+etag dependent by _header
+{
+  update;
+  delete;
+  field ( readonly, numbering : managed ) Id;
+  field ( readonly ) Docentry, Currency, taxamount, Whsname, linetotal;
+  association _header { with draft; }
+
+  //determination
+  determination setHeaderDocCurr on modify { create; }
+  determination calculateTaxAmount on modify { field Taxcode, Price, Quantity; }
+  determination calculateLineTotal on modify { field Price, Quantity, Taxcode, Taxamount; }
+
+  side effects
+  {
+    field Itemcode affects field Taxcode;
+    field Unit affects field Taxcode, field taxamount;
+    field Price affects field Taxcode, field taxamount, field linetotal;
+    field Quantity affects field Taxcode, field linetotal;
+    field taxcode affects field taxamount, field linetotal;
+     field taxamount affects field linetotal, field _header.Taxamt;
+  }
+
+  mapping for yrdr1 corresponding
+    {
+      Id            = id;
+      Docentry      = docentry;
+      Itemcode      = itemcode;
+      Description   = description;
+      Unit          = unit;
+      Quantity      = quantity;
+      Currency      = currency;
+      Price         = price;
+      Linetotal     = linetotal;
+      Whscode       = whscode;
+      Whsname       = whsname;
+      Taxcode       = taxcode;
+      Taxamount     = taxamount;
+      Freetext      = freetext;
+      CreatedBy     = created_by;
+      CreatedAt     = created_at;
+      Lastchangedat = lastchangedat;
+    }
+
+
+}

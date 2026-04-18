@@ -1,0 +1,4 @@
+@EndUserText.label: 'Service Definition for BP'
+define service Ysd_ocrd {
+  expose YC_OCRD;
+}

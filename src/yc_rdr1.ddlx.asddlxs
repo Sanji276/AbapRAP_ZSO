@@ -1,0 +1,109 @@
+@Metadata.layer: #PARTNER
+
+@UI.headerInfo: {
+    typeName: 'Sales Order Item',
+    typeNamePlural: 'Sales Order Items',
+    title: {
+        type: #STANDARD,
+        value: 'Itemcode'
+    },
+    description: {
+        type: #STANDARD,
+        value: 'Description'
+    }
+}
+
+annotate entity YC_RDR1 with
+{
+  @UI.facet: [
+    {
+      id: 'HeaderInfo',
+      purpose: #HEADER,
+      type: #FIELDGROUP_REFERENCE,
+      label: 'Order Info',
+      targetQualifier: 'HEADERINFO'
+    },
+    {
+      id: 'ItemDetails',
+      purpose: #STANDARD,
+      type: #FIELDGROUP_REFERENCE,
+      label: 'Item Details',
+      position: 10,
+      targetQualifier: 'ITEM'
+    }
+  ]
+
+  // ── Header fields shown in object page header band
+  @UI.fieldGroup: [{ qualifier: 'HEADERINFO', position: 10, label: 'Doc No.' }]
+  DocNum;
+
+  @UI.fieldGroup: [{ qualifier: 'HEADERINFO', position: 20, label: 'Customer Name' }]
+  CardName;
+
+  // ── Item Code
+  @UI.lineItem:   [{ position: 10, label: 'Item Code' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 10, label: 'Item Code' }]
+  Itemcode;
+
+  // ── Description
+  @UI.lineItem:   [{ position: 20, label: 'Description' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 20, label: 'Description' }]
+  Description;
+
+  // ── Free Text
+  @UI.lineItem:   [{ position: 30, label: 'Free Text' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 30, label: 'Free Text' }]
+  Freetext;
+
+  // ── Unit
+  @UI.lineItem:   [{ position: 40, label: 'Unit' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 40, label: 'Unit' }]
+  @Consumption.valueHelpDefinition: [{ entity.element: 'UomCode', entity.name: 'YI_UOM'
+  }]
+  Unit;
+
+  // ── Quantity
+  @UI.lineItem:   [{ position: 50, label: 'Quantity' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 50, label: 'Quantity' }]
+  Quantity;
+
+  // ── Currency
+  @UI.lineItem:   [{ position: 60, label: 'Currency' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 60, label: 'Currency' }]
+  @Consumption.valueHelpDefinition: [{ entity.element: 'CurrCode', entity.name: 'YI_CURRENCY'
+  }]
+ 
+  Currency;
+
+  // ── Price
+  @UI.lineItem:   [{ position: 70, label: 'Unit Price' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 70, label: 'Unit Price' }]
+  Price;
+
+  // ── Tax Code
+  @UI.lineItem:   [{ position: 80, label: 'Tax Code' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 80, label: 'Tax Code' }]
+  @Consumption.valueHelpDefinition: [{ entity.element: 'Value', entity.name: 'YI_TAXCODE'
+  }]
+  Taxcode;
+
+  // ── Tax Amount
+  @UI.lineItem:   [{ position: 90, label: 'Tax Amount' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 90, label: 'Tax Amount' }]
+  Taxamount;
+
+  // ── Warehouse Code
+  @UI.lineItem:   [{ position: 100, label: 'Whse Code' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 100, label: 'Warehouse Code' }]
+  Whscode;
+
+  // ── Warehouse Name
+  @UI.lineItem:   [{ position: 110, label: 'Whse Name' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 110, label: 'Warehouse Name' }]
+  Whsname;
+
+  // ── Line Total
+  @UI.lineItem:   [{ position: 120, label: 'Line Total' }]
+  @UI.fieldGroup: [{ qualifier: 'ITEM', position: 120, label: 'Line Total' }]
+  Linetotal;
+}
