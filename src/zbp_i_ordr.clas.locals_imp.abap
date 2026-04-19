@@ -3,16 +3,16 @@ CLASS lhc_oatch DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
     METHODS update FOR MODIFY
-      IMPORTING entities FOR UPDATE OATCH.
+      IMPORTING entities FOR UPDATE oatch.
 
     METHODS delete FOR MODIFY
-      IMPORTING keys FOR DELETE OATCH.
+      IMPORTING keys FOR DELETE oatch.
 
     METHODS read FOR READ
-      IMPORTING keys FOR READ OATCH RESULT result.
+      IMPORTING keys FOR READ oatch RESULT result.
 
     METHODS rba_Order FOR READ
-      IMPORTING keys_rba FOR READ OATCH\_Order FULL result_requested RESULT result LINK association_links.
+      IMPORTING keys_rba FOR READ oatch\_Order FULL result_requested RESULT result LINK association_links.
 
 ENDCLASS.
 
@@ -77,10 +77,10 @@ CLASS lhc_ORDR DEFINITION INHERITING FROM cl_abap_behavior_handler.
     METHODS precheck_cba_Item FOR PRECHECK
       IMPORTING entities FOR CREATE ordr\_Item.
     METHODS rba_Attachments FOR READ
-      IMPORTING keys_rba FOR READ ORDR\_Attachments FULL result_requested RESULT result LINK association_links.
+      IMPORTING keys_rba FOR READ ordr\_Attachments FULL result_requested RESULT result LINK association_links.
 
     METHODS cba_Attachments FOR MODIFY
-      IMPORTING entities_cba FOR CREATE ORDR\_Attachments.
+      IMPORTING entities_cba FOR CREATE ordr\_Attachments.
 
 
 ENDCLASS.
@@ -155,8 +155,8 @@ CLASS lhc_ORDR IMPLEMENTATION.
   WHERE docentry = @keys-docentry
   INTO TABLE @DATA(lt_result).
 
-    result = value #(
-        for order in lt_result
+    result = VALUE #(
+        FOR order IN lt_result
         (
             %key-Docentry = order-docentry
         )
@@ -165,6 +165,46 @@ CLASS lhc_ORDR IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD lock.
+
+
+    TRY.
+        DATA(lock) = cl_abap_lock_object_factory=>get_instance( iv_name = 'EYLOCK_ORDR' ).
+
+        LOOP AT keys ASSIGNING FIELD-SYMBOL(<lfs_order>).
+          TRY.
+              lock->enqueue(
+*              it_table_mode =
+                it_parameter  = VALUE #( ( name = 'DOCENTRY' value = REF #( <lfs_order>-Docentry  ) ) )
+*              _scope        =
+*              _wait         =
+              ).
+
+            CATCH cx_abap_foreign_lock INTO DATA(ls_foreign_lock).
+              APPEND VALUE #(
+                  %key-docentry = <lfs_order>-Docentry
+                  %msg = new_message_with_text(
+                           severity = if_abap_behv_message=>severity-error
+                           text     = 'Object Order is locked by user: ' && ls_foreign_lock->user_name && '. You cannot delete this object.'
+                         )
+               ) TO reported-ordr.
+
+              APPEND VALUE #( %key-docentry = <lfs_order>-Docentry ) TO failed-ordr.
+
+          ENDTRY.
+
+        ENDLOOP.
+
+
+
+
+      CATCH cx_abap_lock_failure INTO DATA(exception).
+        DATA(lv_ex_msg) = exception->get_text( ).
+        RAISE SHORTDUMP exception.
+    ENDTRY.
+
+
+
+
   ENDMETHOD.
 
   METHOD rba_Item.
