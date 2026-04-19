@@ -4,6 +4,7 @@
 define root view entity YI_ORDR as 
     select from yordr
     composition [1..*] of YI_RDR1 as _item
+    composition [1..*] of YI_OATCH as _attachments
 {    
     key yordr.docentry as Docentry,
     yordr.series as Series,
@@ -31,5 +32,6 @@ define root view entity YI_ORDR as
     yordr.created_at as CreatedAt,
     yordr.lastchangedat as Lastchangedat,
     yordr.locallastchangedat as Locallastchangedat,
-    _item
+    _item,
+    _attachments
 }

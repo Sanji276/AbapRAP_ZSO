@@ -10,15 +10,17 @@ CLASS ycl_order_api DEFINITION
            tt_mapped_early_order   TYPE RESPONSE FOR MAPPED EARLY yi_ordr,
            tt_failed_early_order   TYPE RESPONSE FOR FAILED EARLY yi_ordr,
            tt_reported_early_order TYPE RESPONSE FOR REPORTED EARLY yi_ordr,
-           tt_reported_late_order  TYPE RESPONSE FOR REPORTED LATE yi_ordr.
+           tt_reported_late_order  TYPE RESPONSE FOR REPORTED LATE yi_ordr,
+           tt_delete_order         TYPE TABLE FOR DELETE yi_ordr\\ordr.
 
     TYPES: tt_create_order_item TYPE TABLE FOR CREATE yi_ordr\\ordr\_item,
            tt_header            TYPE TABLE OF yordr WITH EMPTY KEY.
 
 
     CLASS-DATA:
-      gt_header TYPE STANDARD TABLE OF yordr,
-      gt_item   TYPE STANDARD TABLE OF yrdr1.
+      gt_header              TYPE STANDARD TABLE OF yordr,
+      gt_item                TYPE STANDARD TABLE OF yrdr1,
+      gt_order_delete_dockey TYPE RANGE OF yordr-docentry.
 
     METHODS: earlynumbering_create
       IMPORTING entities TYPE tt_create_order
@@ -51,7 +53,13 @@ CLASS ycl_order_api DEFINITION
 
       check_before_save_item
         RETURNING
-          VALUE(rt_error_orders) TYPE tt_header. "returns headers that failed validation
+          VALUE(rt_error_orders) TYPE tt_header, "returns headers that failed validation
+
+      delete_order
+        IMPORTING keys     TYPE tt_delete_order"table for delete yi_ordr\\ordr [ derived type... ]
+        CHANGING  mapped   TYPE tt_mapped_early_order"response for mapped early yi_ordr  [ derived type... ]
+                  failed   TYPE tt_failed_early_order "response for failed early yi_ordr  [ derived type... ]
+                  reported TYPE tt_reported_early_order. "response for reported early yi_ordr    [ derived type... ]
 
 *      check_required_itemdetails_exist_in_row
 *        importing keys
@@ -299,6 +307,8 @@ CLASS ycl_order_api IMPLEMENTATION.
 
     CLEAR: gt_header, gt_item.
 
+
+
   ENDMETHOD.
 
   METHOD check_before_save_item.
@@ -315,6 +325,23 @@ CLASS ycl_order_api IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD delete_order.
+
+    DATA: lt_order TYPE STANDARD TABLE OF yordr.
+
+    lt_order = CORRESPONDING #( keys MAPPING FROM ENTITY ).
+
+    gt_order_delete_dockey = VALUE #(
+        FOR ls_order IN lt_order
+        (
+            sign = 'I'
+            option = 'EQ'
+            low = ls_order-docentry
+        )
+     ).
+
   ENDMETHOD.
 
 ENDCLASS.

@@ -1,3 +1,37 @@
+CLASS lhc_oatch DEFINITION INHERITING FROM cl_abap_behavior_handler.
+
+  PRIVATE SECTION.
+
+    METHODS update FOR MODIFY
+      IMPORTING entities FOR UPDATE OATCH.
+
+    METHODS delete FOR MODIFY
+      IMPORTING keys FOR DELETE OATCH.
+
+    METHODS read FOR READ
+      IMPORTING keys FOR READ OATCH RESULT result.
+
+    METHODS rba_Order FOR READ
+      IMPORTING keys_rba FOR READ OATCH\_Order FULL result_requested RESULT result LINK association_links.
+
+ENDCLASS.
+
+CLASS lhc_oatch IMPLEMENTATION.
+
+  METHOD update.
+  ENDMETHOD.
+
+  METHOD delete.
+  ENDMETHOD.
+
+  METHOD read.
+  ENDMETHOD.
+
+  METHOD rba_Order.
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_ORDR DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
@@ -42,6 +76,11 @@ CLASS lhc_ORDR DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS precheck_cba_Item FOR PRECHECK
       IMPORTING entities FOR CREATE ordr\_Item.
+    METHODS rba_Attachments FOR READ
+      IMPORTING keys_rba FOR READ ORDR\_Attachments FULL result_requested RESULT result LINK association_links.
+
+    METHODS cba_Attachments FOR MODIFY
+      IMPORTING entities_cba FOR CREATE ORDR\_Attachments.
 
 
 ENDCLASS.
@@ -84,11 +123,44 @@ CLASS lhc_ORDR IMPLEMENTATION.
 
   METHOD delete.
 
+*    READ ENTITIES OF yi_ordr IN LOCAL MODE
+*    ENTITY ordr
+*    ALL FIELDS WITH CORRESPONDING #( keys )
+*    RESULT DATA(lt_result).
+
+    ycl_order_api=>get_instance(  )->delete_order(
+      EXPORTING
+        keys     = keys
+      CHANGING
+        mapped   = mapped
+        failed   = failed
+        reported = reported
+    ).
+
+*    LOOP AT lt_result INTO DATA(ls_order).
+*    DELETE FROM yordr
+*      WHERE docentry = @ls_order-Docentry.
+*    IF sy-subrc <> 0.
+*      APPEND VALUE #( %tky = ls_order-%tky ) TO failed-ordr.
+*    ENDIF.
+*  ENDLOOP.
 
   ENDMETHOD.
 
   METHOD read.
 
+    SELECT *
+  FROM yordr
+  FOR ALL ENTRIES IN @keys
+  WHERE docentry = @keys-docentry
+  INTO TABLE @DATA(lt_result).
+
+    result = value #(
+        for order in lt_result
+        (
+            %key-Docentry = order-docentry
+        )
+     ).
 
   ENDMETHOD.
 
@@ -225,6 +297,12 @@ CLASS lhc_ORDR IMPLEMENTATION.
 
     ENDLOOP.
 
+  ENDMETHOD.
+
+  METHOD rba_Attachments.
+  ENDMETHOD.
+
+  METHOD cba_Attachments.
   ENDMETHOD.
 
 ENDCLASS.
@@ -489,6 +567,13 @@ CLASS lsc_YI_ORDR IMPLEMENTATION.
       CHANGING
         reported = reported
     ).
+
+    CHECK ycl_order_api=>gt_order_delete_dockey IS NOT INITIAL.
+
+    DELETE FROM yordr
+    WHERE docentry IN  @ycl_order_api=>gt_order_delete_dockey.
+
+    CLEAR: ycl_order_api=>gt_order_delete_dockey.
   ENDMETHOD.
 
   METHOD cleanup.

@@ -9,6 +9,7 @@ use etag
   use delete;
 
   use association _item { create; with draft; }
+  use association _attachments { create; with draft; }
 
   use action Edit;
   use action Activate;
@@ -40,5 +41,13 @@ define behavior for YC_RDR1 alias RDR1
     field taxamount affects field linetotal, field _header.Taxamt;
 
   }
+
+}
+
+define behavior for YC_OATCH alias OATCH
+{
+  use update;
+  use delete;
+  use association _order { with draft; }
 
 }

@@ -38,6 +38,14 @@ annotate entity YC_ORDR with
       label: 'Remarks & Summary',
       type: #FIELDGROUP_REFERENCE,
       targetQualifier: 'FOOTER'
+    },
+    {
+      id: 'ATTACHMENTS',
+      purpose: #STANDARD,
+      position: 40,
+      label: 'Attachments',
+      type: #LINEITEM_REFERENCE,
+      targetElement: '_attachments'
     }
   ]
 

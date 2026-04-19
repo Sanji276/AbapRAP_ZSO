@@ -33,6 +33,7 @@ define root view entity YC_ORDR
     Lastchangedat,
     Locallastchangedat,
     /* Associations */
-    _item : redirected to composition child YC_RDR1
+    _item : redirected to composition child YC_RDR1,
+    _attachments : redirected to composition child YC_OATCH
   
 }

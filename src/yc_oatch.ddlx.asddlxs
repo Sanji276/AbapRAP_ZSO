@@ -1,0 +1,51 @@
+@Metadata.layer: #PARTNER
+@UI.headerInfo: {
+    typeName: 'Attachment',
+    typeNamePlural: 'Attachments',
+    title: {
+        type: #STANDARD,
+        value: '_order.Docnum'
+    },
+    description: {
+        type: #STANDARD,
+        value: '_order.Cardname'
+    }
+}
+annotate entity YC_OATCH with
+{
+  @UI.facet: [
+    {
+      id: 'HeaderInfo',
+      purpose: #HEADER,
+      type: #FIELDGROUP_REFERENCE,
+      label: 'Order Info',
+      targetQualifier: 'HEADERINFO'
+    },
+    {
+      id: 'Attachments',
+      purpose: #STANDARD,
+      type: #FIELDGROUP_REFERENCE,
+      label: 'Attachment Details',
+      position: 10,
+      targetQualifier: 'ATTACHMENTS'
+    }
+  ]
+
+  @UI.fieldGroup: [{ qualifier: 'HEADERINFO', position: 10, label: 'Doc No.' }]
+  DocNum;
+
+  @UI.fieldGroup: [{ qualifier: 'HEADERINFO', position: 20, label: 'Customer Name' }]
+  CardName;
+
+  @UI.fieldGroup: [{ qualifier: 'ATTACHMENTS', position: 10, label: 'Upload File' }]
+  @UI.lineItem:   [{ position: 10, label: 'Upload File' }]
+  Attachment;
+
+  @UI.fieldGroup: [{ qualifier: 'ATTACHMENTS', position: 20, label: 'Comments' }]
+  @UI.lineItem:   [{ position: 20, label: 'Comments' }]
+  Comments;
+
+  @UI.fieldGroup: [{ qualifier: 'ATTACHMENTS', position: 30, label: 'File Name' }]
+  @UI.lineItem:   [{ position: 30, label: 'File Name' }]
+  Filename;
+}

@@ -17,7 +17,7 @@ etag master Locallastchangedat
 
   //associations
   association _item { create ( precheck ); with draft; }
-
+  association _attachments { create; with draft; }
   //draft actions
   draft action Edit;
   draft action Activate optimized;
@@ -67,7 +67,7 @@ etag dependent by _header
   update;
   delete;
   field ( readonly, numbering : managed ) Id;
-  field ( readonly ) Docentry, Currency, taxamount, Whsname, linetotal;
+  field ( readonly ) Docentry, taxamount, Whsname, linetotal;
   association _header { with draft; }
 
   //determination
@@ -82,7 +82,7 @@ etag dependent by _header
     field Price affects field Taxcode, field taxamount, field linetotal;
     field Quantity affects field Taxcode, field linetotal;
     field taxcode affects field taxamount, field linetotal;
-     field taxamount affects field linetotal, field _header.Taxamt;
+    field taxamount affects field linetotal, field _header.Taxamt;
   }
 
   mapping for yrdr1 corresponding
@@ -105,6 +105,28 @@ etag dependent by _header
       CreatedAt     = created_at;
       Lastchangedat = lastchangedat;
     }
+}
 
 
+define behavior for YI_OATCH alias OATCH
+draft table ydrf_oatch
+lock dependent by _order
+authorization dependent by _order
+etag dependent by _order
+{
+  update;
+  delete;
+  association _order { with draft; }
+  field ( readonly, numbering : managed ) AttachId;
+  field ( readonly ) Docentry;
+
+  mapping for yoatch corresponding
+    {
+      AttachId   = attach_id;
+      Attachment = attachment;
+      Comments   = comments;
+      Docentry   = docentry;
+      Filename   = filename;
+      Mimetype   = mimetype;
+    }
 }

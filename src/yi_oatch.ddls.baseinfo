@@ -3,12 +3,11 @@
 {
 "FROM":
 [
-"YORDR"
+"YOATCH"
 ],
 "ASSOCIATED":
 [
-"YI_OATCH",
-"YI_RDR1"
+"YI_ORDR"
 ],
 "BASE":
 [],
