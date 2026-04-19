@@ -88,6 +88,32 @@ ENDCLASS.
 CLASS lhc_ORDR IMPLEMENTATION.
 
   METHOD get_instance_features.
+    READ ENTITIES OF yi_ordr IN LOCAL MODE
+    ENTITY ordr
+    FIELDS ( docentry )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result).
+
+    SELECT Docentry
+    FROM yordr
+    FOR ALL ENTRIES IN @lt_result
+    WHERE docentry = @lt_result-Docentry
+    INTO TABLE @DATA(lt_saved).
+
+    IF requested_features-%update = '01'.
+      result = VALUE #(
+          FOR order IN lt_result
+          (
+              %tky = order-%tky
+              %features-%field-Cardcode = COND #( WHEN line_exists( lt_saved[ docentry = order-Docentry ] )
+                                                    THEN if_abap_behv=>fc-f-read_only
+                                                   ELSE if_abap_behv=>fc-f-unrestricted
+                                                   )
+          )
+
+       ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD get_instance_authorizations.
@@ -119,6 +145,11 @@ CLASS lhc_ORDR IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD update.
+*    modIFY entities of yi_ordr in local mode
+*    entity ordr
+*    UPDATE
+*    FIELDS ( cardname )
+
   ENDMETHOD.
 
   METHOD delete.

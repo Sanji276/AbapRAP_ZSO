@@ -14,6 +14,7 @@ etag master Locallastchangedat
   delete ( features : instance );
   field ( readonly ) Docentry, DocNum, Docstatus, DocTotal, Taxableamt, Taxamt, Discount;
   field ( readonly ) CardName;
+  field (features : instance) CardCode;
 
   //associations
   association _item { create ( precheck ); with draft; }
