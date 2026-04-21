@@ -81,6 +81,8 @@ CLASS lhc_ORDR DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS cba_Attachments FOR MODIFY
       IMPORTING entities_cba FOR CREATE ordr\_Attachments.
+    METHODS ValidateHeaderFields FOR VALIDATE ON SAVE
+      IMPORTING keys FOR ordr~ValidateHeaderFields.
 
 
 ENDCLASS.
@@ -110,7 +112,6 @@ CLASS lhc_ORDR IMPLEMENTATION.
                                                    ELSE if_abap_behv=>fc-f-unrestricted
                                                    )
           )
-
        ).
     ENDIF.
 
@@ -374,6 +375,129 @@ CLASS lhc_ORDR IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD cba_Attachments.
+  ENDMETHOD.
+
+  METHOD ValidateHeaderFields.
+    READ ENTITIES OF yi_ordr IN LOCAL MODE
+    ENTITY ordr
+    FIELDS ( cardcode Doccur docdate docduedate Taxdate Series )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result)
+    FAILED DATA(lt_failed)
+    REPORTED DATA(lt_reported).
+
+    IF lt_result[] IS NOT INITIAL.
+
+      READ TABLE lt_result ASSIGNING FIELD-SYMBOL(<lfs_result>) INDEX 1.
+
+      IF <lfs_result> IS ASSIGNED.
+
+        reported-ordr = VALUE #(
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_CARDCODE' )
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_DOCCUR' )
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_DOCDATE' )
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_DOCDUEDATE' )
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_TAXDATE' )
+               ( %tky = <lfs_result>-%tky %state_area = 'VALIDATE_SERIES' )
+         ).
+
+
+        DATA(lt_fields) = VALUE string_table(
+           ( COND #( WHEN <lfs_result>-Cardcode IS INITIAL THEN 'cardcode' ) )
+           ( COND #( WHEN <lfs_result>-Doccur IS INITIAL THEN 'doccur' ) )
+           ( COND #( WHEN <lfs_result>-docdate IS INITIAL THEN 'docdate' ) )
+           ( COND #( WHEN <lfs_result>-docduedate IS INITIAL THEN 'docduedate' ) )
+           ( COND #( WHEN <lfs_result>-Taxdate IS INITIAL THEN 'taxdate' ) )
+           ( COND #( WHEN <lfs_result>-Series IS INITIAL THEN 'series' ) )
+         ).
+
+
+        IF lt_fields[] IS NOT INITIAL.
+          APPEND VALUE #(
+                %tky = <lfs_result>-%tky
+             ) TO failed-ordr.
+        ENDIF.
+
+        LOOP AT lt_fields INTO DATA(ls_field).
+          DATA(lv_message) = SWITCH string( ls_field
+                  WHEN 'cardcode' THEN 'Please select cardcode.'
+                  WHEN 'doccur' THEN 'Please select currency.'
+                  WHEN 'docdate' THEN 'Please select document date.'
+                  WHEN 'docduedate' THEN 'Please select due date.'
+                  WHEN 'taxdate' THEN 'Please select tax date.'
+                  WHEN 'series' THEN 'Please enter series.'
+                  ELSE ''
+                  ).
+
+          DATA(lv_statearea) = SWITCH string( ls_field
+                WHEN 'cardcode' THEN 'VALIDATE_CARDCODE'
+                WHEN 'doccur' THEN 'VALIDATE_DOCCUR'
+                WHEN 'docdate' THEN 'VALIDATE_DOCDATE'
+                WHEN 'docduedate' THEN 'VALIDATE_DOCDUEDATE'
+                WHEN 'taxdate' THEN 'VALIDATE_TAXDATE'
+                WHEN 'series' THEN 'VALIDATE_SERIES'
+          ).
+
+          APPEND VALUE #(
+              %tky = <lfs_result>-%tky
+              %state_area = lv_statearea
+              %element = VALUE #(
+                   Cardcode = COND #( WHEN ls_field = 'cardcode' THEN if_abap_behv=>mk-on )
+                   Doccur   = COND #( WHEN ls_field = 'doccur'   THEN if_abap_behv=>mk-on )
+                   Docdate  = COND #( WHEN ls_field = 'docdate'  THEN if_abap_behv=>mk-on )
+                   Docduedate = COND #( WHEN ls_field = 'docduedate' THEN if_abap_behv=>mk-on )
+                   Taxdate  = COND #( WHEN ls_field = 'taxdate'  THEN if_abap_behv=>mk-on )
+                   Series   = COND #( WHEN ls_field = 'series'   THEN if_abap_behv=>mk-on )
+                 )
+              %msg = new_message_with_text(
+                       severity = if_abap_behv_message=>severity-error
+                       text     = lv_message
+                     )
+           ) TO reported-ordr.
+
+        ENDLOOP.
+
+*        IF <lfs_result>-Cardcode IS INITIAL OR
+*            <lfs_result>-Doccur IS INITIAL OR
+*            <lfs_result>-docdate IS INITIAL OR
+*            <lfs_result>-docduedate IS INITIAL OR
+*            <lfs_result>-Taxdate IS INITIAL OR
+*            <lfs_result>-Series IS INITIAL .
+*
+*          APPEND VALUE #(
+*              %tky = <lfs_result>-%tky
+*           ) TO failed-ordr.
+*
+*          IF <lfs_result>-Cardcode IS INITIAL.
+*            APPEND VALUE #(
+*                %tky = <lfs_result>-%tky
+*                %state_area = 'VALIDATE_CARDCODE'
+*                %element-cardcode = if_abap_behv=>mk-on
+*                %msg = new_message_with_text(
+*                         severity = if_abap_behv_message=>severity-error
+*                         text     = 'Please select cardcode.'
+*                       )
+*             ) TO reported-ordr.
+*          ENDIF.
+*
+*          IF <lfs_result>-Doccur IS INITIAL.
+*            APPEND VALUE #(
+*                %tky = <lfs_result>-%tky
+*                %state_area = 'VALIDATE_DOCCUR'
+*                %element-Doccur = if_abap_behv=>mk-on
+*                %msg = new_message_with_text(
+*                         severity = if_abap_behv_message=>severity-error
+*                         text     = 'Please select currency.'
+*                       )
+*             ) TO reported-ordr.
+*          ENDIF.
+*
+*        ENDIF.
+
+
+      ENDIF.
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.

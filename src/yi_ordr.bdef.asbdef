@@ -14,17 +14,25 @@ etag master Locallastchangedat
   delete ( features : instance );
   field ( readonly ) Docentry, DocNum, Docstatus, DocTotal, Taxableamt, Taxamt, Discount;
   field ( readonly ) CardName;
-  field (features : instance) CardCode;
+  field ( features : instance ) CardCode;
+  field ( mandatory ) Cardcode, doccur, series, taxdate, docdate, docduedate;
 
   //associations
   association _item { create ( precheck ); with draft; }
   association _attachments { create; with draft; }
+
+  //validations
+  validation ValidateHeaderFields on save { create; update; }
+
   //draft actions
   draft action Edit;
   draft action Activate optimized;
   draft action Discard;
   draft action Resume;
-  draft determine action Prepare;
+  draft determine action Prepare
+  {
+    validation ValidateHeaderFields;
+  }
 
   //determination
   determination set_docnum on modify { create; }
