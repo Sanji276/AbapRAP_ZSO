@@ -1,0 +1,13 @@
+@Metadata.layer: #CORE
+annotate entity YA_ORDER_ENTITY with
+{
+  @EndUserText.label: 'Set Document Status'
+ // @UI.identification: [{position: 10 }]
+  @UI.defaultValue: #( 'ELEMENT_OF_REFERENCED_ENTITY: Docstatus'  )
+  docstatus;
+  @EndUserText.label: 'Reference No.'
+ // @UI.identification: [{position: 20 }]
+  @UI.defaultValue: #( 'ELEMENT_OF_REFERENCED_ENTITY: Numatcard'  )
+  numatcard;
+
+}

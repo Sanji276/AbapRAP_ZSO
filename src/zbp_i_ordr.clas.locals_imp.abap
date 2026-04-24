@@ -83,6 +83,8 @@ CLASS lhc_ORDR DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING entities_cba FOR CREATE ordr\_Attachments.
     METHODS ValidateHeaderFields FOR VALIDATE ON SAVE
       IMPORTING keys FOR ordr~ValidateHeaderFields.
+    METHODS setDocStatus FOR MODIFY
+      IMPORTING keys FOR ACTION ordr~setDocStatus RESULT result.
 
 
 ENDCLASS.
@@ -146,11 +148,14 @@ CLASS lhc_ORDR IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD update.
-*    modIFY entities of yi_ordr in local mode
-*    entity ordr
-*    UPDATE
-*    FIELDS ( cardname )
-
+    ycl_order_api=>get_instance( )->update_order(
+      EXPORTING
+        entities = entities
+      CHANGING
+        mapped   = mapped
+        failed   = failed
+        reported = reported
+    ).
   ENDMETHOD.
 
   METHOD delete.
@@ -179,22 +184,32 @@ CLASS lhc_ORDR IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD read.
+ METHOD read.   " in lhc_ORDR
+  SELECT *
+    FROM yordr
+    FOR ALL ENTRIES IN @keys
+    WHERE docentry = @keys-Docentry
+    INTO TABLE @DATA(lt_db).
 
-    SELECT *
-  FROM yordr
-  FOR ALL ENTRIES IN @keys
-  WHERE docentry = @keys-docentry
-  INTO TABLE @DATA(lt_result).
-
-    result = VALUE #(
-        FOR order IN lt_result
-        (
-            %key-Docentry = order-docentry
-        )
-     ).
-
-  ENDMETHOD.
+  result = VALUE #(
+    FOR row IN lt_db (
+      %tky      = VALUE #( Docentry = row-docentry )
+      Docnum    = row-docnum
+      Series    = row-series
+      Docdate   = row-docdate
+      Docduedate = row-docduedate
+      Taxdate   = row-taxdate
+      Cardcode  = row-cardcode
+      Cardname  = row-cardname
+      Numatcard = row-numatcard
+      Doccur    = row-doccur
+      Docstatus = row-docstatus
+      Doctotal  = row-doctotal
+      Taxamt    = row-taxamt
+      Comments  = row-comments
+    )
+  ).
+ENDMETHOD.
 
   METHOD lock.
 
@@ -410,7 +425,7 @@ CLASS lhc_ORDR IMPLEMENTATION.
            ( COND #( WHEN <lfs_result>-Taxdate IS INITIAL THEN 'taxdate' ) )
            ( COND #( WHEN <lfs_result>-Series IS INITIAL THEN 'series' ) )
          ).
-
+        DELETE lt_fields WHERE table_line IS INITIAL.
 
         IF lt_fields[] IS NOT INITIAL.
           APPEND VALUE #(
@@ -457,46 +472,81 @@ CLASS lhc_ORDR IMPLEMENTATION.
 
         ENDLOOP.
 
-*        IF <lfs_result>-Cardcode IS INITIAL OR
-*            <lfs_result>-Doccur IS INITIAL OR
-*            <lfs_result>-docdate IS INITIAL OR
-*            <lfs_result>-docduedate IS INITIAL OR
-*            <lfs_result>-Taxdate IS INITIAL OR
-*            <lfs_result>-Series IS INITIAL .
-*
-*          APPEND VALUE #(
-*              %tky = <lfs_result>-%tky
-*           ) TO failed-ordr.
-*
-*          IF <lfs_result>-Cardcode IS INITIAL.
-*            APPEND VALUE #(
-*                %tky = <lfs_result>-%tky
-*                %state_area = 'VALIDATE_CARDCODE'
-*                %element-cardcode = if_abap_behv=>mk-on
-*                %msg = new_message_with_text(
-*                         severity = if_abap_behv_message=>severity-error
-*                         text     = 'Please select cardcode.'
-*                       )
-*             ) TO reported-ordr.
-*          ENDIF.
-*
-*          IF <lfs_result>-Doccur IS INITIAL.
-*            APPEND VALUE #(
-*                %tky = <lfs_result>-%tky
-*                %state_area = 'VALIDATE_DOCCUR'
-*                %element-Doccur = if_abap_behv=>mk-on
-*                %msg = new_message_with_text(
-*                         severity = if_abap_behv_message=>severity-error
-*                         text     = 'Please select currency.'
-*                       )
-*             ) TO reported-ordr.
-*          ENDIF.
-*
-*        ENDIF.
-
 
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD setDocStatus.
+
+    READ ENTITIES OF yi_ordr IN LOCAL MODE
+      ENTITY ordr
+      FIELDS ( Docstatus Numatcard )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_result)
+      REPORTED DATA(lt_reported_read)
+    FAILED DATA(lt_failed_read).
+
+    " Block multiple selection
+    IF lines( keys ) > 1.
+      APPEND VALUE #( %tky = lt_result[ 1 ]-%tky ) TO failed-ordr.
+      APPEND VALUE #( %tky = lt_result[ 1 ]-%tky
+                      %msg = new_message_with_text(
+                               severity = if_abap_behv_message=>severity-error
+                               text     = 'Error: Please select single object.' )
+                    ) TO reported-ordr.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_docstatus) = keys[ 1 ]-%param-docstatus.
+    DATA(lv_numatcard) = keys[ 1 ]-%param-numatcard.
+
+    IF lv_docstatus <> 'O' AND lv_docstatus <> 'C'.
+      APPEND VALUE #( %tky = lt_result[ 1 ]-%tky ) TO failed-ordr.
+      APPEND VALUE #( %tky = lt_result[ 1 ]-%tky
+                      %msg = new_message_with_text(
+                               severity = if_abap_behv_message=>severity-error
+                               text     = 'Invalid Status: Allowed values O (Open), C (Closed).' )
+                    ) TO reported-ordr.
+      RETURN.
+    ENDIF.
+
+    MODIFY ENTITIES OF yi_ordr IN LOCAL MODE
+      ENTITY ordr
+      UPDATE
+      FIELDS ( Docstatus Numatcard )
+      WITH VALUE #(
+        ( %tky      = lt_result[ 1 ]-%tky
+          Docstatus = lv_docstatus
+          Numatcard = lv_numatcard )
+      )
+      REPORTED DATA(lt_reported_modify)
+    FAILED DATA(lt_failed_modify).
+
+    IF lt_failed_modify IS NOT INITIAL.
+      APPEND LINES OF lt_failed_modify-ordr TO failed-ordr.
+    ENDIF.
+    IF lt_reported_modify IS NOT INITIAL.
+      APPEND LINES OF lt_reported_modify-ordr TO reported-ordr.
+    ENDIF.
+
+    READ ENTITIES OF yi_ordr IN LOCAL MODE
+    ENTITY ordr
+    FIELDS ( Docstatus Numatcard )
+    WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result_final)
+    REPORTED DATA(lt_reported_final)
+    FAILED DATA(lt_failed_final).
+
+    " Set the result
+    result = VALUE #(
+        FOR x IN lt_result_final
+        (
+            %tky = x-%tky
+            %param = x
+        )
+    ).
 
   ENDMETHOD.
 
@@ -763,12 +813,22 @@ CLASS lsc_YI_ORDR IMPLEMENTATION.
         reported = reported
     ).
 
+    IF ( ycl_order_api=>gt_header_update ) IS NOT INITIAL.
+      MODIFY yordr FROM TABLE @ycl_order_api=>gt_header_update.
+      IF sy-subrc = 0.
+
+      ENDIF.
+      CLEAR ycl_order_api=>gt_header_update.
+    ENDIF.
+
     CHECK ycl_order_api=>gt_order_delete_dockey IS NOT INITIAL.
 
     DELETE FROM yordr
     WHERE docentry IN  @ycl_order_api=>gt_order_delete_dockey.
 
     CLEAR: ycl_order_api=>gt_order_delete_dockey.
+
+
   ENDMETHOD.
 
   METHOD cleanup.

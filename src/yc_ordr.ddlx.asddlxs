@@ -50,7 +50,8 @@ annotate entity YC_ORDR with
   ]
 
   // ── Cardcode
-  @UI.lineItem:   [{ position: 30, label: 'Card Code' }]
+  @UI.lineItem:   [{ position: 30, label: 'Card Code' }, 
+                    { type: #FOR_ACTION, dataAction: 'setDocStatus', label: 'Update Info', invocationGrouping: #CHANGE_SET } ]
   @UI.fieldGroup: [{ qualifier: 'HEADER', position: 10, label: 'Customer Code' }]
   @Consumption.valueHelpDefinition: [{ entity.element: 'Cardcode', entity.name: 'YC_OCRD',
     additionalBinding: [

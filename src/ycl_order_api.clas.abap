@@ -11,7 +11,8 @@ CLASS ycl_order_api DEFINITION
            tt_failed_early_order   TYPE RESPONSE FOR FAILED EARLY yi_ordr,
            tt_reported_early_order TYPE RESPONSE FOR REPORTED EARLY yi_ordr,
            tt_reported_late_order  TYPE RESPONSE FOR REPORTED LATE yi_ordr,
-           tt_delete_order         TYPE TABLE FOR DELETE yi_ordr\\ordr.
+           tt_delete_order         TYPE TABLE FOR DELETE yi_ordr\\ordr,
+           tt_update_order         TYPE TABLE FOR UPDATE yi_ordr\\ordr.
 
     TYPES: tt_create_order_item TYPE TABLE FOR CREATE yi_ordr\\ordr\_item,
            tt_header            TYPE TABLE OF yordr WITH EMPTY KEY.
@@ -19,6 +20,7 @@ CLASS ycl_order_api DEFINITION
 
     CLASS-DATA:
       gt_header              TYPE STANDARD TABLE OF yordr,
+      gt_header_update       TYPE STANDARD TABLE OF yordr,
       gt_item                TYPE STANDARD TABLE OF yrdr1,
       gt_order_delete_dockey TYPE RANGE OF yordr-docentry.
 
@@ -59,10 +61,16 @@ CLASS ycl_order_api DEFINITION
         IMPORTING keys     TYPE tt_delete_order"table for delete yi_ordr\\ordr [ derived type... ]
         CHANGING  mapped   TYPE tt_mapped_early_order"response for mapped early yi_ordr  [ derived type... ]
                   failed   TYPE tt_failed_early_order "response for failed early yi_ordr  [ derived type... ]
-                  reported TYPE tt_reported_early_order. "response for reported early yi_ordr    [ derived type... ]
+                  reported TYPE tt_reported_early_order, "response for reported early yi_ordr    [ derived type... ]
 
 *      check_required_itemdetails_exist_in_row
 *        importing keys
+
+      update_order
+        IMPORTING entities TYPE tt_update_order"table for update yi_ordr\\ordr [ derived type... ]
+        CHANGING  mapped   TYPE tt_mapped_early_order"response for mapped early yi_ordr  [ derived type... ]
+                  failed   TYPE tt_failed_early_order "response for failed early yi_ordr  [ derived type... ]
+                  reported TYPE tt_reported_early_order. "response for reported early yi_ordr    [ derived type... ]
 
 
 
@@ -341,6 +349,58 @@ CLASS ycl_order_api IMPLEMENTATION.
             low = ls_order-docentry
         )
      ).
+
+  ENDMETHOD.
+
+  METHOD update_order.
+    DATA: lt_order_update TYPE STANDARD TABLE OF yordr.
+    DATA: lt_order_update_x TYPE STANDARD TABLE OF zcs_ordr.
+
+    lt_order_update = CORRESPONDING #( entities MAPPING FROM ENTITY ).
+    lt_order_update_x = CORRESPONDING #( entities MAPPING FROM ENTITY USING CONTROL ).
+
+
+    IF lt_order_update IS NOT INITIAL.
+
+      SELECT * FROM yordr
+      FOR ALL ENTRIES IN @lt_order_update
+      WHERE docentry = @lt_order_update-docentry
+      INTO TABLE @DATA(lt_old_order).
+
+    ENDIF.
+
+    gt_header_update = VALUE #(
+    FOR ls_update IN lt_order_update
+    LET
+        lv_index      = line_index( lt_order_update[ table_line = ls_update ] )
+        ls_new_order  = VALUE #( lt_order_update_x[ lv_index ] OPTIONAL )
+        ls_old_order  = VALUE #( lt_old_order[ docentry = ls_update-docentry ] OPTIONAL )
+    IN
+    (
+        docentry           = ls_old_order-docentry
+        docnum             = ls_old_order-docnum
+        series             = COND #( WHEN ls_new_order-series      = 'X' THEN ls_update-series      ELSE ls_old_order-series      )
+        docdate            = COND #( WHEN ls_new_order-docdate     = 'X' THEN ls_update-docdate     ELSE ls_old_order-docdate     )
+        docduedate         = COND #( WHEN ls_new_order-docduedate  = 'X' THEN ls_update-docduedate  ELSE ls_old_order-docduedate  )
+        taxdate            = COND #( WHEN ls_new_order-taxdate     = 'X' THEN ls_update-taxdate     ELSE ls_old_order-taxdate     )
+        cardcode           = COND #( WHEN ls_new_order-cardcode    = 'X' THEN ls_update-cardcode    ELSE ls_old_order-cardcode    )
+        cardname           = COND #( WHEN ls_new_order-cardname    = 'X' THEN ls_update-cardname    ELSE ls_old_order-cardname    )
+        numatcard          = COND #( WHEN ls_new_order-numatcard   = 'X' THEN ls_update-numatcard   ELSE ls_old_order-numatcard   )
+        billtoaddress      = COND #( WHEN ls_new_order-billtoaddress = 'X' THEN ls_update-billtoaddress ELSE ls_old_order-billtoaddress )
+        shiptoaddress      = COND #( WHEN ls_new_order-shiptoaddress = 'X' THEN ls_update-shiptoaddress ELSE ls_old_order-shiptoaddress )
+        comments           = COND #( WHEN ls_new_order-comments    = 'X' THEN ls_update-comments    ELSE ls_old_order-comments    )
+        doccur             = COND #( WHEN ls_new_order-doccur      = 'X' THEN ls_update-doccur      ELSE ls_old_order-doccur      )
+        taxableamt         = COND #( WHEN ls_new_order-taxableamt  = 'X' THEN ls_update-taxableamt  ELSE ls_old_order-taxableamt  )
+        taxamt             = COND #( WHEN ls_new_order-taxamt      = 'X' THEN ls_update-taxamt      ELSE ls_old_order-taxamt      )
+        discount           = COND #( WHEN ls_new_order-discount    = 'X' THEN ls_update-discount    ELSE ls_old_order-discount    )
+        doctotal           = COND #( WHEN ls_new_order-doctotal    = 'X' THEN ls_update-doctotal    ELSE ls_old_order-doctotal    )
+        docstatus          = COND #( WHEN ls_new_order-docstatus   = 'X' THEN ls_update-docstatus   ELSE ls_old_order-docstatus   )
+        created_by         = ls_old_order-created_by
+        created_at         = ls_old_order-created_at
+        lastchangedat      = ls_old_order-lastchangedat
+        locallastchangedat = ls_old_order-locallastchangedat
+    )
+).
 
   ENDMETHOD.
 

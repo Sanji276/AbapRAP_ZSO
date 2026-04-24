@@ -38,7 +38,10 @@ etag master Locallastchangedat
   determination set_docnum on modify { create; }
   determination setCardname on modify { field Cardcode; }
 
-  mapping for yordr corresponding
+  //actions
+  action ( features : instance ) setDocStatus parameter YA_ORDER_ENTITY result [1] $self;
+
+  mapping for yordr control zcs_ordr
     {
       Docentry           = docentry;
       Series             = series;
